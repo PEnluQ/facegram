@@ -1,0 +1,23 @@
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthService } from './auth.service';
+
+export const ChatGuard: CanActivateFn = (route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isAuthenticated()) {
+    router.navigate(['/']);
+    return false;
+  }
+
+  const role = auth.getRole();
+  if (role === 'GUEST') {
+    return true;
+  }
+  if (!auth.isChatAllowed()) {
+    router.navigate(['/']);
+    return false;
+  }
+  return true;
+};
