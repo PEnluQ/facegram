@@ -6,6 +6,7 @@ import {RippleModule} from 'primeng/ripple';
 import {InputTextModule} from 'primeng/inputtext';
 import {Router, RouterModule, NavigationEnd} from '@angular/router';
 import {MenubarModule} from 'primeng/menubar';
+import {AuthService} from '../../core/auth.service';
 
 @Component({
   selector: "navbar-main",
@@ -31,6 +32,12 @@ import {MenubarModule} from 'primeng/menubar';
       <button class="p-button-text" [class.active]="url === '/chat'" (click)="goTo('/chat')">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
           <path d="M6 21V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-3 3z" stroke="#229ED9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </button>
+
+      <button *ngIf="isAdmin" class="p-button-text" [class.active]="url === '/admin'" (click)="goTo('/admin')">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L18 10H26L20 16L22 24L14 19L6 24L8 16L2 10H10L14 2Z" stroke="#229ED9" stroke-width="2" fill="none"/>
         </svg>
       </button>
 
@@ -96,13 +103,15 @@ import {MenubarModule} from 'primeng/menubar';
 
 export class NavbarComponent {
   url = '';
+  isAdmin = false;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private auth: AuthService) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd){
         this.url = event.urlAfterRedirects;
       }
     });
+    this.isAdmin = this.auth.getRole() === 'ADMIN';
   }
 
   goTo(path: string) {
