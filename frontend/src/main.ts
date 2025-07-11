@@ -12,6 +12,8 @@ import {HomePageComponent} from './app/page/home-page/home-page.component';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {AuthInterceptor} from './app/core/api.interceptor';
 import {ChatGuard} from './app/core/auth.guard';
+import {AdminGuard} from './app/core/admin.guard';
+import {AdminPageComponent} from './app/page/admin-page/admin-page.component';
 
 const routes: Routes = [
   {
@@ -20,6 +22,7 @@ const routes: Routes = [
       {path: 'settings', component: SettingsComponent},
       { path: 'chat', component: ChatComponent, canActivate: [ChatGuard] },
       { path: 'chat/:id', component: ChatComponent, canActivate: [ChatGuard] },
+      { path: 'admin', component: AdminPageComponent, canActivate: [AdminGuard] },
     ]
   },
 ];

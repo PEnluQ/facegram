@@ -1,6 +1,5 @@
 package pinktelegram.facegram.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pinktelegram.facegram.dto.AuthResponse;
@@ -10,9 +9,6 @@ import pinktelegram.facegram.repository.UserRepository;
 import pinktelegram.facegram.security.JwtUtil;
 import pinktelegram.facegram.util.TelegramInitDataValidator;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -21,7 +17,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final TelegramInitDataValidator validator;
 
-    public AuthResponse authViaTelegram(String initData) throws NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public AuthResponse authViaTelegram(String initData) {
         var info = validator.validate(initData, "7898493285:AAH0JtNGYfavuDAJm8Pud57UEwftaY8U8BY");
         if (info == null) throw new RuntimeException("Invalid Telegram Auth");
 
@@ -35,5 +31,25 @@ public class UserService {
 
         String token = jwtUtil.createToken(user.getTelegramId(), user.getRole());
         return new AuthResponse(token, user.getRole().name());
+    }
+
+    public void promoteGuestToWageSlave(Long telegramId) {
+        User user = userRepository.findById(telegramId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getRole() != Role.GUEST) {
+            throw new RuntimeException("User is not GUEST");
+        }
+        user.setRole(Role.WAGESLAVE);
+        userRepository.save(user);
+    }
+
+    public void promoteGuestToWageSlave(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getRole() != Role.GUEST) {
+            throw new RuntimeException("User is not GUEST");
+        }
+        user.setRole(Role.WAGESLAVE);
+        userRepository.save(user);
     }
 }

@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://mathematical-attachments-utilize-tickets.trycloudflare.com'
+  apiUrl: 'https://semester-aerospace-webpage-operational.trycloudflare.com'
 };
