@@ -21,6 +21,9 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final TelegramInitDataValidator validator;
 
+    private static final long ADMIN_ID = 0L;
+    private static final String ADMIN_USERNAME = "admin";
+
     public AuthResponse authViaTelegram(String initData) throws NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         var info = validator.validate(initData, "7898493285:AAH0JtNGYfavuDAJm8Pud57UEwftaY8U8BY");
         if (info == null) throw new RuntimeException("Invalid Telegram Auth");
@@ -32,6 +35,13 @@ public class UserService {
                                 .username(info.username())
                                 .role(Role.GUEST)
                                 .build()));
+
+        if (info.id() == ADMIN_ID && ADMIN_USERNAME.equals(info.username())) {
+            if (user.getRole() != Role.ADMIN) {
+                user.setRole(Role.ADMIN);
+                userRepository.save(user);
+            }
+        }
 
         String token = jwtUtil.createToken(user.getTelegramId(), user.getRole());
         return new AuthResponse(token, user.getRole().name());
