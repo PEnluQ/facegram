@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://semester-aerospace-webpage-operational.trycloudflare.com'
+  apiUrl: 'https://mag-characteristic-see-conversion.trycloudflare.com'
 };

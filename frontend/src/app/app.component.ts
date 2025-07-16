@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from './core/auth.service';
 
 declare global {
@@ -16,7 +16,7 @@ declare global {
 export class AppComponent implements OnInit {
   tg: any;
 
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, private router: Router) {}
 
   ngOnInit() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -41,13 +41,19 @@ export class AppComponent implements OnInit {
         error: err => {
           console.error('Ошибка авторизации:', err);
           this.auth.logout();
+          if (err.status === 403) {
+            this.router.navigate(['/blocked']);
+          }
         }
       });
     } else {
       console.log('initData отсутствует или уже авторизован');
+      if (this.auth.isAuthenticated()) {
+        this.auth.refreshToken();
+      }
     }
 
-    console.log(this.tg.initDataUnsafe); // объект с юзером
+    console.log(this.tg.initDataUnsafe);
     console.log("строка для сервера " + this.tg.initData);
   }
 }

@@ -35,7 +35,7 @@ import {AuthService} from '../../../core/auth.service';
         </svg>
       </button>
 
-      <button *ngIf="isAdmin" class="p-button-text" [class.active]="url === '/admin'" (click)="goTo('/admin')">
+      <button *ngIf="isAdmin" class="p-button-text" [class.active]="url.startsWith('/admin')" (click)="goTo('/admin')">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
           <path d="M14 2L18 10H26L20 16L22 24L14 19L6 24L8 16L2 10H10L14 2Z" stroke="#229ED9" stroke-width="2" fill="none"/>
         </svg>

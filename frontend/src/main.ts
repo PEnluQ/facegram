@@ -14,6 +14,8 @@ import {AuthInterceptor} from './app/core/api.interceptor';
 import {ChatGuard} from './app/core/auth.guard';
 import {AdminGuard} from './app/core/admin.guard';
 import {AdminPageComponent} from './app/page/admin-page/admin-page.component';
+import {AdminUserComponent} from './app/page/admin-user/admin-user.component';
+import {BlockedPageComponent} from './app/page/blocked-page/blocked-page.component';
 
 const routes: Routes = [
   {
@@ -23,6 +25,8 @@ const routes: Routes = [
       { path: 'chat', component: ChatComponent, canActivate: [ChatGuard] },
       { path: 'chat/:id', component: ChatComponent, canActivate: [ChatGuard] },
       { path: 'admin', component: AdminPageComponent, canActivate: [AdminGuard] },
+      { path: 'admin/user/:id', component: AdminUserComponent, canActivate: [AdminGuard] },
+      { path: 'blocked', component: BlockedPageComponent },
     ]
   },
 ];

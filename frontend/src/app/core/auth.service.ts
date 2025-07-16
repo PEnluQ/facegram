@@ -19,17 +19,17 @@ export class AuthService {
   }
 
   saveAuth(token: string, role: string) {
-    sessionStorage.setItem('token', token);
-    sessionStorage.setItem('role', role);
+    localStorage.setItem('token', token);
+    localStorage.setItem('role', role);
     console.log('Токен сохранён', token, 'роль:', role);
   }
 
   isAuthenticated(): boolean {
-    return !!sessionStorage.getItem('token');
+    return !!localStorage.getItem('token');
   }
 
   getRole(): string | null {
-    const token = sessionStorage.getItem('token');
+    const token = localStorage.getItem('token');
     if (!token) return null;
     try {
       const payload: any = jwtDecode(token);
@@ -40,12 +40,12 @@ export class AuthService {
   }
 
   logout() {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('role');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
   }
 
   isChatAllowed(): boolean {
-    const token = sessionStorage.getItem('token');
+    const token = localStorage.getItem('token');
     if (!token) return false;
     try {
       const payload: any = jwtDecode(token);
@@ -53,5 +53,16 @@ export class AuthService {
     } catch {
       return false;
     }
+  }
+
+  refreshToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    this.http.post<{ token: string; role: string }>(`${this.api}/auth/refresh`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: res => this.saveAuth(res.token, res.role),
+      error: err => console.error('Ошибка обновления токена', err)
+    });
   }
 }

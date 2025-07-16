@@ -3,18 +3,24 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment'
-import { ButtonDirective } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
+import { Router } from '@angular/router';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 @Component({
   selector: 'admin-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonDirective, InputTextModule],
+  imports: [CommonModule, FormsModule, AutoCompleteModule],
   template: `
     <div class="content-wrapper">
-      <input [(ngModel)]="username" placeholder="Guest username" />
-      <button pButton (click)="promote()" label="Promote"></button>
-      <p *ngIf="message">{{ message }}</p>
+      <p-autoComplete [(ngModel)]="query" [suggestions]="results" field="username"
+                      (completeMethod)="search($event)" (onSelect)="select($event)" [forceSelection]="true">
+        <ng-template pTemplate="item" let-user>
+          <div class="flex justify-between">
+            <span>{{ user.username }}</span>
+            <span class="ml-2 text-sm">{{ user.role }}</span>
+          </div>
+        </ng-template>
+      </p-autoComplete>
     </div>
   `,
   styles: [`
@@ -24,17 +30,23 @@ import { InputTextModule } from 'primeng/inputtext';
   `]
 })
 export class AdminPageComponent {
-  username = '';
-  message = '';
+  query = '';
+  results: any[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
-  promote() {
-    const name = this.username.trim();
-    if (!name) return;
-    this.http.post(`${environment.apiUrl}/admin/users/wageslave?username=${name}`, {}).subscribe({
-      next: () => this.message = 'User promoted',
-      error: () => this.message = 'Failed to promote'
+  search(event: any) {
+    const q = event.query.trim();
+    if (!q) { this.results = []; return; }
+    this.http.get<any[]>(`${environment.apiUrl}/admin/users?q=${q}`).subscribe({
+      next: (users) => this.results = users,
+      error: () => this.results = []
     });
+  }
+
+  select(event: any) {
+    const user = event.value ?? event;
+    if (!user || user.telegramId == null) return;
+    this.router.navigate(['/admin/user', user.telegramId]);
   }
 }
