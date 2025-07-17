@@ -40,7 +40,7 @@ export class AppComponent implements OnInit {
         next: res => this.auth.saveAuth(res.token, res.role),
         error: err => {
           console.error('Ошибка авторизации:', err);
-          this.auth.logout();
+          this.auth.logout(err.status === 403);
           if (err.status === 403) {
             this.router.navigate(['/blocked']);
           }

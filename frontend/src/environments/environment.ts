@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://mag-characteristic-see-conversion.trycloudflare.com'
-};
+  apiUrl: 'https://fishing-lebanon-how-newly.trycloudflare.com'
+}

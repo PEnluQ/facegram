@@ -7,7 +7,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.*;
 
 @Service
@@ -40,12 +39,13 @@ public class TelegramInitDataValidator {
             }
             String dataCheckString = dataCheckBuilder.toString();
 
-            // 3. Вычисляем секретный ключ
-            byte[] secretKeyBytes = MessageDigest.getInstance("SHA-256")
-                    .digest(botToken.getBytes(StandardCharsets.UTF_8));
-
             // 4. Вычисляем HMAC
             Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec("WebAppData".getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] secretKeyBytes = mac.doFinal(botToken.getBytes(StandardCharsets.UTF_8));
+
+            // 4. Вычисляем HMAC от data_check_string этим ключом
+            mac.reset();
             mac.init(new SecretKeySpec(secretKeyBytes, "HmacSHA256"));
             String computedHash = bytesToHex(mac.doFinal(dataCheckString.getBytes(StandardCharsets.UTF_8)));
 

@@ -11,8 +11,9 @@ import { ButtonDirective } from 'primeng/button';
   imports: [CommonModule, ButtonDirective],
   template: `
     <div class="content-wrapper" *ngIf="user">
-      <h2>{{ user.username }}</h2>
+      <h2>Username: {{ user.username }}</h2>
       <p>Role: {{ user.role }}</p>
+      <p>Banned: {{user.blocked}}</p>
       <button *ngIf="user.role === 'GUEST'" pButton label="Promote to WAGESLAVE" (click)="promote()"></button>
       <button pButton label="{{ user.blocked ? 'Unblock' : 'Block' }}" class="ml-2" (click)="toggleBlock()"></button>
       <p *ngIf="message">{{ message }}</p>
@@ -41,15 +42,19 @@ export class AdminUserComponent implements OnInit {
 
   promote() {
     if (!this.user) return;
-    this.http.post(`${environment.apiUrl}/admin/users/${this.user.telegramId}/wageslave`, {}).subscribe({
-      next: (res: any) => {
+    this.http.post(
+      `${environment.apiUrl}/admin/users/${this.user.telegramId}/wageslave`,
+      {},
+      { responseType: 'text' }
+    ).subscribe({
+      next: (res) => {
         this.message = res === 'already' ? 'Действие уже совершено' : 'Успешно';
         if (res !== 'already') this.user.role = 'WAGESLAVE';
-        setTimeout(() => this.message = '', 3000);
+        setTimeout(() => (this.message = ''), 3000);
       },
       error: () => {
         this.message = 'Failed';
-        setTimeout(() => this.message = '', 3000);
+        setTimeout(() => (this.message = ''), 3000);
       }
     });
   }
@@ -57,15 +62,19 @@ export class AdminUserComponent implements OnInit {
   toggleBlock() {
     if (!this.user) return;
     const action = this.user.blocked ? 'unblock' : 'block';
-    this.http.post(`${environment.apiUrl}/admin/users/${this.user.telegramId}/${action}`, {}).subscribe({
-      next: (res: any) => {
+    this.http.post(
+      `${environment.apiUrl}/admin/users/${this.user.telegramId}/${action}`,
+      {},
+      { responseType: 'text' }
+    ).subscribe({
+      next: (res) => {
         this.message = res === 'already' ? 'Действие уже совершено' : 'Успешно';
         if (res !== 'already') this.user.blocked = action === 'block';
-        setTimeout(() => this.message = '', 3000);
+        setTimeout(() => (this.message = ''), 3000);
       },
       error: () => {
         this.message = 'Failed';
-        setTimeout(() => this.message = '', 3000);
+        setTimeout(() => (this.message = ''), 3000);
       }
     });
   }

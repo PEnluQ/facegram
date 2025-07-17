@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pinktelegram.facegram.security.JwtUtil;
 import pinktelegram.facegram.service.UserService;
+import pinktelegram.facegram.notification.NotificationService;
 
 @RestController
 @RequestMapping("/admin")
@@ -16,6 +17,7 @@ import pinktelegram.facegram.service.UserService;
 public class AdminController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final NotificationService notificationService;
 
     @PostMapping("/users/{id}/wageslave")
     public ResponseEntity<String> promote(@PathVariable("id") Long id,
@@ -51,6 +53,9 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
             boolean changed = userService.blockUser(id);
+            if (changed) {
+                notificationService.sendBlocked(id, true);
+            }
             return ResponseEntity.ok(changed ? "done" : "already");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -71,6 +76,9 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
             boolean changed = userService.unblockUser(id);
+            if (changed) {
+                notificationService.sendBlocked(id, false);
+            }
             return ResponseEntity.ok(changed ? "done" : "already");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

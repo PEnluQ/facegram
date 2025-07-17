@@ -7,6 +7,7 @@ import { ButtonModule }  from 'primeng/button';
 import { ToolbarModule } from 'primeng/toolbar';
 import {Router, RouterModule} from '@angular/router';
 import {NavbarComponent} from '../../shared/components/navbar/navbar.component';
+import {AuthService} from '../../core/auth.service';
 
 @Component({
   selector: 'app-home-layout',
@@ -23,7 +24,7 @@ import {NavbarComponent} from '../../shared/components/navbar/navbar.component';
   template: `
     <div class="content-wrapper">
       <router-outlet />
-      <navbar-main></navbar-main>
+      <navbar-main *ngIf="!auth.isBlocked()"></navbar-main>
     </div>
   `,
   styles: [`
@@ -36,7 +37,7 @@ import {NavbarComponent} from '../../shared/components/navbar/navbar.component';
 export class HomeLayoutComponent {
   isMainPage = false;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, public auth: AuthService) {
     this.router.events.subscribe(() => {
       this.isMainPage = this.router.url === '/';
     });

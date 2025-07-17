@@ -45,7 +45,8 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Разрешаем preflight-запросы (CORS)
-                        .requestMatchers("/auth/**").permitAll() // Разрешаем доступ ко всем /auth/**
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/notifications/subscribe").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtTokenFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)

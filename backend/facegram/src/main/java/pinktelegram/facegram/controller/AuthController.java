@@ -42,6 +42,9 @@ public class AuthController {
             Jws<Claims> claims = jwtUtil.parseToken(token);
             Long id = Long.parseLong(claims.getPayload().getSubject());
             var user = userService.getUser(id);
+            if (user.isBlocked()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             String newToken = jwtUtil.createToken(user.getTelegramId(), user.getRole());
             return ResponseEntity.ok(new AuthResponse(newToken, user.getRole().name()));
         } catch (Exception e) {
