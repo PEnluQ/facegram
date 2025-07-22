@@ -32,6 +32,20 @@ export class AppComponent implements OnInit {
     this.tg = window.Telegram.WebApp;
     this.tg.ready();
 
+    let start = this.tg.initDataUnsafe?.start_param as string | undefined;
+    if (!start) {
+      const params = new URLSearchParams(window.location.search);
+      start = params.get('tgWebAppStartParam') ?? undefined;
+    }
+    if (start && start.startsWith('chat_invite_')) {
+      const token = start.substring('chat_invite_'.length);
+      if (this.auth.isChatAllowed()) {
+        this.router.navigate(['/chat']);
+      } else {
+        this.router.navigate(['/invite', token]);
+      }
+    }
+
     const initData = this.tg.initData || '';
     console.log('initData из Telegram:', initData);
 
@@ -49,7 +63,11 @@ export class AppComponent implements OnInit {
     } else {
       console.log('initData отсутствует или уже авторизован');
       if (this.auth.isAuthenticated()) {
-        this.auth.refreshToken();
+        if (this.auth.getRole() === 'CLIENT') {
+          this.auth.resumeClientInvite();
+        } else {
+          this.auth.refreshToken();
+        }
       }
     }
 

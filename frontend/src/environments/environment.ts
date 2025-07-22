@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://fishing-lebanon-how-newly.trycloudflare.com'
+  apiUrl: 'https://starts-rows-side-anthropology.trycloudflare.com'
 }

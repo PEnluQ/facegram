@@ -18,7 +18,8 @@ export const ChatGuard: CanActivateFn = (route, state) => {
 
   const role = auth.getRole();
   if (role === 'GUEST') {
-    return true;
+    router.navigate(['/']);
+    return false;
   }
   if (!auth.isChatAllowed()) {
     router.navigate(['/']);

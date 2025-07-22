@@ -18,14 +18,18 @@ public class JwtUtil {
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
     public String createToken(Long telegramId, Role role) {
+        return createToken(telegramId, role, 86400);
+    }
+
+    public String createToken(Long telegramId, Role role, long ttlSeconds) {
         Instant now = Instant.now();
-        Instant expiry = now.plusSeconds(86400); // 1 день
+        Instant expiry = now.plusSeconds(ttlSeconds);
 
         JwtBuilder builder = Jwts.builder()
                 .subject(String.valueOf(telegramId))
                 .claim("role", role.name())
                 .claim("created", now.toString())
-                .claim("exp", expiry.getEpochSecond()) // Стандартное поле exp (epoch seconds)
+                .claim("exp", expiry.getEpochSecond())
                 .signWith(KEY);
 
         return builder.compact();

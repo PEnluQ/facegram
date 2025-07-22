@@ -35,6 +35,17 @@ public class NotificationService {
         }
     }
 
+    public void sendRoleChanged(Long userId, String role) {
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().name("role").data(role));
+            } catch (IOException e) {
+                emitters.remove(userId);
+            }
+        }
+    }
+
     @Scheduled(fixedRate = 15000)
     public void sendPings() {
         emitters.forEach((id, emitter) -> {

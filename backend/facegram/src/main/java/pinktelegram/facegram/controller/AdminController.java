@@ -33,6 +33,33 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
             boolean changed = userService.promoteGuestToWageSlave(id);
+            if (changed) {
+                notificationService.sendRoleChanged(id, "WAGESLAVE");
+            }
+            return ResponseEntity.ok(changed ? "done" : "already");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+
+    @PostMapping("/users/{id}/guest")
+    public ResponseEntity<String> demote(@PathVariable("id") Long id,
+                                         @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = authHeader.substring(7);
+        try {
+            Jws<Claims> claims = jwtUtil.parseToken(token);
+            String role = claims.getPayload().get("role", String.class);
+            if (!"ADMIN".equals(role)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            boolean changed = userService.demoteWageSlaveToGuest(id);
+            if (changed) {
+                notificationService.sendRoleChanged(id, "GUEST");
+            }
             return ResponseEntity.ok(changed ? "done" : "already");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -99,6 +126,10 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
             boolean changed = userService.promoteGuestToWageSlave(username);
+            if (changed) {
+                Long id = userService.getByUsername(username).getTelegramId();
+                notificationService.sendRoleChanged(id, "WAGESLAVE");
+            }
             return ResponseEntity.ok(changed ? "done" : "already");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

@@ -7,7 +7,7 @@ import {providePrimeNG} from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import 'primeicons/primeicons.css';
 import {SettingsComponent} from './app/features/settings/settings.component';
-import {ChatComponent} from './app/features/chat/chat.component';
+import {ChatComponent} from './app/page/chat/chat.component';
 import {HomePageComponent} from './app/page/home-page/home-page.component';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {AuthInterceptor} from './app/core/api.interceptor';
@@ -16,6 +16,7 @@ import {AdminGuard} from './app/core/admin.guard';
 import {AdminPageComponent} from './app/page/admin-page/admin-page.component';
 import {AdminUserComponent} from './app/page/admin-user/admin-user.component';
 import {BlockedPageComponent} from './app/page/blocked-page/blocked-page.component';
+import {InvitePageComponent} from './app/page/invite-page/invite-page.component';
 
 const routes: Routes = [
   {
@@ -27,6 +28,7 @@ const routes: Routes = [
       { path: 'admin', component: AdminPageComponent, canActivate: [AdminGuard] },
       { path: 'admin/user/:id', component: AdminUserComponent, canActivate: [AdminGuard] },
       { path: 'blocked', component: BlockedPageComponent },
+      { path: 'invite/:token', component: InvitePageComponent },
     ]
   },
 ];

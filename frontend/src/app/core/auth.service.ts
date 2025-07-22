@@ -1,4 +1,3 @@
-// core/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -10,6 +9,8 @@ export class AuthService {
   private readonly api = environment.apiUrl;
   private refreshTimerId: any = null;
   private eventSource: EventSource | null = null;
+  private clientExpireTimer: any = null;
+  private clientExpireAt: number | null = null;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -27,7 +28,36 @@ export class AuthService {
     localStorage.removeItem('blocked');
     console.log('Токен сохранён', token, 'роль:', role);
     this.startAutoRefresh();
-    this.startBlockListener();
+    this.startNotificationListener();
+    if (role === 'CLIENT') {
+      try {
+        const payload: any = jwtDecode(token);
+        const exp = payload.exp ? Number(payload.exp) : null;
+        if (exp) {
+          this.scheduleClientExpiration(exp);
+        }
+      } catch {}
+    } else {
+      if (this.clientExpireTimer) {
+        clearTimeout(this.clientExpireTimer);
+        this.clientExpireTimer = null;
+      }
+      this.clientExpireAt = null;
+    }
+  }
+
+  resumeClientInvite() {
+    const role = this.getRole();
+    if (role !== 'CLIENT') return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const payload: any = jwtDecode(token);
+      const exp = payload.exp ? Number(payload.exp) : null;
+      if (exp) {
+        this.scheduleClientExpiration(exp);
+      }
+    } catch {}
   }
 
   isAuthenticated(): boolean {
@@ -52,6 +82,11 @@ export class AuthService {
       this.eventSource.close();
       this.eventSource = null;
     }
+    if (this.clientExpireTimer) {
+      clearTimeout(this.clientExpireTimer);
+      this.clientExpireTimer = null;
+    }
+    this.clientExpireAt = null;
     if (blocked) {
       localStorage.setItem('blocked', 'true');
     } else {
@@ -68,13 +103,45 @@ export class AuthService {
     if (!token) return false;
     try {
       const payload: any = jwtDecode(token);
-      return payload.role === 'GUEST' && (payload.exp * 1000) > Date.now();
+      const role = payload.role;
+      if (role === 'ADMIN' || role === 'WAGESLAVE') {
+        return true;
+      }
+      if (role === 'CLIENT') {
+        const exp = payload.exp ? Number(payload.exp) : null;
+        return !!exp && Date.now() / 1000 < exp;
+      }
+      return false;
     } catch {
       return false;
     }
   }
 
+  acceptInvite(invite: string) {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    return this.http.post<{ token: string; role: string }>(
+      `${this.api}/invite/accept?token=${invite}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+  }
+
+    createInvite()  {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    return this.http.post(
+      `${this.api}/invite/create`,
+      {},
+      { responseType: 'text', headers: { Authorization: `Bearer ${token}` } }
+    );
+  }
+
   refreshToken() {
+    const role = this.getRole();
+    if (role === 'CLIENT') {
+      return;
+    }
     const token = localStorage.getItem('token');
     if (!token) return;
     this.http.post<{ token: string; role: string }>(`${this.api}/auth/refresh`, {}, {
@@ -95,10 +162,15 @@ export class AuthService {
     if (this.refreshTimerId) {
       clearInterval(this.refreshTimerId);
     }
-    this.refreshTimerId = setInterval(() => this.refreshToken(), 60 * 1000);
+    const role = this.getRole();
+    if (role === 'CLIENT') {
+      this.refreshTimerId = null;
+      return;
+    }
+    this.refreshTimerId = setInterval(() => this.refreshToken(), 600000);
   }
 
-  private startBlockListener() {
+  private startNotificationListener() {
     if (this.eventSource) {
       this.eventSource.close();
     }
@@ -112,12 +184,42 @@ export class AuthService {
         this.router.navigate(['/blocked']);
       }
     });
+    this.eventSource.addEventListener('role', () => {
+      this.refreshToken();
+      const role = this.getRole();
+      if (role === 'GUEST') {
+        this.router.navigate(['/']);
+      }
+    });
     this.eventSource.onerror = () => {
       if (this.eventSource) {
         this.eventSource.close();
         this.eventSource = null;
       }
-      setTimeout(() => this.startBlockListener(), 5000);
+      setTimeout(() => this.startNotificationListener(), 5000);
     };
+  }
+
+  private scheduleClientExpiration(exp: number) {
+    if (this.clientExpireTimer) {
+      clearTimeout(this.clientExpireTimer);
+    }
+    this.clientExpireAt = exp * 1000;
+    const delay = exp * 1000 - Date.now();
+    if (delay <= 0) {
+      this.logout();
+      this.router.navigate(['/']);
+      return;
+    }
+    this.clientExpireTimer = setTimeout(() => {
+      this.logout();
+      this.router.navigate(['/']);
+    }, delay);
+  }
+
+  getClientRemainingSeconds(): number | null {
+    if (!this.clientExpireAt) return null;
+    const remaining = Math.floor((this.clientExpireAt - Date.now()) / 1000);
+    return remaining > 0 ? remaining : null;
   }
 }

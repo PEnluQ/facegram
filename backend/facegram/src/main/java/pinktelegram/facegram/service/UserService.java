@@ -60,6 +60,11 @@ public class UserService {
         return true;
     }
 
+    public User getByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public boolean promoteGuestToWageSlave(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -67,6 +72,17 @@ public class UserService {
             return false;
         }
         user.setRole(Role.WAGESLAVE);
+        userRepository.save(user);
+        return true;
+    }
+
+    public boolean demoteWageSlaveToGuest(Long telegramId) {
+        User user = userRepository.findById(telegramId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getRole() != Role.WAGESLAVE) {
+            return false;
+        }
+        user.setRole(Role.GUEST);
         userRepository.save(user);
         return true;
     }
