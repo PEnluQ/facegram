@@ -15,6 +15,7 @@ declare global {
 })
 export class AppComponent implements OnInit {
   tg: any;
+  private inviteStart = false;
 
   constructor(private auth: AuthService, private router: Router) {}
 
@@ -38,6 +39,7 @@ export class AppComponent implements OnInit {
       start = params.get('tgWebAppStartParam') ?? undefined;
     }
     if (start && start.startsWith('chat_invite_')) {
+      this.inviteStart = true;
       const token = start.substring('chat_invite_'.length);
       if (this.auth.isChatAllowed()) {
         this.router.navigate(['/chat']);
@@ -49,7 +51,7 @@ export class AppComponent implements OnInit {
     const initData = this.tg.initData || '';
     console.log('initData из Telegram:', initData);
 
-    if (initData && !this.auth.isAuthenticated()) {
+    if (initData && !this.auth.isAuthenticated() && !this.inviteStart) {
       this.auth.loginViaTelegram(initData).subscribe({
         next: res => this.auth.saveAuth(res.token, res.role),
         error: err => {
@@ -63,11 +65,7 @@ export class AppComponent implements OnInit {
     } else {
       console.log('initData отсутствует или уже авторизован');
       if (this.auth.isAuthenticated()) {
-        if (this.auth.getRole() === 'CLIENT') {
-          this.auth.resumeClientInvite();
-        } else {
-          this.auth.refreshToken();
-        }
+        this.auth.refreshToken();
       }
     }
 

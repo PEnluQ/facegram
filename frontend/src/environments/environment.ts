@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://starts-rows-side-anthropology.trycloudflare.com'
+  apiUrl: 'https://integral-lewis-pdas-tool.trycloudflare.com'
 }

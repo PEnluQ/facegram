@@ -1,5 +1,5 @@
 package pinktelegram.facegram.entity;
 
 public enum Role {
-    ADMIN, WORKER, GUEST, WAGESLAVE, CLIENT
+    ADMIN, WORKER, GUEST, WAGESLAVE
 }

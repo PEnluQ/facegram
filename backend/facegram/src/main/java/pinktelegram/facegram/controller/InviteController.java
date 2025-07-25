@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pinktelegram.facegram.dto.AuthResponse;
+import pinktelegram.facegram.dto.InviteAcceptResponse;
 import pinktelegram.facegram.entity.Role;
 import pinktelegram.facegram.security.JwtUtil;
 import pinktelegram.facegram.service.InvitationService;
@@ -31,7 +31,8 @@ public class InviteController {
             if (!"WAGESLAVE".equals(role) && !"ADMIN".equals(role)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            String invite = invitationService.createInvite(5);
+            Long authorId = Long.parseLong(claims.getPayload().getSubject());
+            String invite = invitationService.createInvite(authorId);
             String link = "https://t.me/FaceGrammBot/faces?startapp=chat_invite_" + invite;
             return ResponseEntity.ok(link);
         } catch (Exception e) {
@@ -40,7 +41,7 @@ public class InviteController {
     }
 
     @PostMapping("/accept")
-    public ResponseEntity<AuthResponse> accept(@RequestParam("token") String inviteToken,
+    public ResponseEntity<InviteAcceptResponse> accept(@RequestParam("token") String inviteToken,
                                                @RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -53,11 +54,13 @@ public class InviteController {
             if (!"GUEST".equals(role)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            if (!invitationService.validateInvite(inviteToken)) {
+            var referral = invitationService.activateInvite(inviteToken, userId);
+            if (referral == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
-            String newToken = jwtUtil.createToken(userId, Role.CLIENT, 5);
-            return ResponseEntity.ok(new AuthResponse(newToken, Role.CLIENT.name()));
+            String newToken = jwtUtil.createToken(userId, Role.GUEST, 15 * 60, true);
+            java.time.LocalDateTime expires = referral.getExpiresAt();
+            return ResponseEntity.ok(new InviteAcceptResponse(newToken, Role.GUEST.name(), expires.toString()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }

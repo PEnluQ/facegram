@@ -17,10 +17,21 @@ public class Referral {
     @Column(nullable = false, unique = true)
     private String token;
 
-    @Column(nullable = false)
-    private long expiresAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "guest_id")
+    private User guest;
 
     @Column(nullable = false)
     @Builder.Default
     private boolean activated = false;
+
+    @Column(name = "used_at")
+    private java.time.LocalDateTime usedAt;
+
+    @Column(name = "expires_at")
+    private java.time.LocalDateTime expiresAt;
 }

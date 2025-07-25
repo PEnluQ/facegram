@@ -18,10 +18,14 @@ public class JwtUtil {
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
     public String createToken(Long telegramId, Role role) {
-        return createToken(telegramId, role, 86400);
+        return createToken(telegramId, role, 86400, false);
     }
 
     public String createToken(Long telegramId, Role role, long ttlSeconds) {
+        return createToken(telegramId, role, ttlSeconds, false);
+    }
+
+    public String createToken(Long telegramId, Role role, long ttlSeconds, boolean invite) {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(ttlSeconds);
 
@@ -30,6 +34,7 @@ public class JwtUtil {
                 .claim("role", role.name())
                 .claim("created", now.toString())
                 .claim("exp", expiry.getEpochSecond())
+                .claim("invite", invite)
                 .signWith(KEY);
 
         return builder.compact();

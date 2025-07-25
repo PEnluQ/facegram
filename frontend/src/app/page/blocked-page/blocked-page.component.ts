@@ -38,7 +38,7 @@ export class BlockedPageComponent implements OnInit, OnDestroy {
         this.router.navigate(['/']);
       },
       error: () => {
-        // still blocked or network issue
+
       }
     });
   }

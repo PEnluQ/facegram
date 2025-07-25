@@ -22,7 +22,6 @@ import {AuthService} from '../../core/auth.service';
   template: `
     <div class="content-wrapper">
         <button pButton severity="danger" label="Подробнее" icon="pi pi-info-circle"></button>
-        <p *ngIf="showTimer" class="mt-2">Осталось {{ countdown }} сек</p>
     </div>
 
     <div *ngIf="canInvite" class="mt-3">
@@ -41,34 +40,15 @@ import {AuthService} from '../../core/auth.service';
   `]
 })
 
-export class ChatComponent implements OnInit, OnDestroy {  roomId: string | null = null;
+export class ChatComponent {
+  roomId: string | null = null;
   inviteLink: string | null = null;
-  countdown = 0;
-  private timerId: any = null;
 
   constructor(
     private route: ActivatedRoute,
     private auth: AuthService
   ) {
     this.roomId = this.route.snapshot.paramMap.get('id');
-  }
-
-  ngOnInit() {
-    if (this.auth.getRole() === 'CLIENT') {
-      this.updateCountdown();
-      this.timerId = setInterval(() => this.updateCountdown(), 1000);
-    }
-  }
-
-  ngOnDestroy() {
-    if (this.timerId) {
-      clearInterval(this.timerId);
-      this.timerId = null;
-    }
-  }
-
-  get showTimer(): boolean {
-    return this.auth.getRole() === 'CLIENT';
   }
 
   get canInvite(): boolean {
@@ -85,8 +65,4 @@ export class ChatComponent implements OnInit, OnDestroy {  roomId: string | null
     });
   }
 
-  private updateCountdown() {
-    const remaining = this.auth.getClientRemainingSeconds();
-    this.countdown = remaining ?? 0;
-  }
 }

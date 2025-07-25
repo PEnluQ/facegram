@@ -9,8 +9,6 @@ export class AuthService {
   private readonly api = environment.apiUrl;
   private refreshTimerId: any = null;
   private eventSource: EventSource | null = null;
-  private clientExpireTimer: any = null;
-  private clientExpireAt: number | null = null;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -29,35 +27,6 @@ export class AuthService {
     console.log('Токен сохранён', token, 'роль:', role);
     this.startAutoRefresh();
     this.startNotificationListener();
-    if (role === 'CLIENT') {
-      try {
-        const payload: any = jwtDecode(token);
-        const exp = payload.exp ? Number(payload.exp) : null;
-        if (exp) {
-          this.scheduleClientExpiration(exp);
-        }
-      } catch {}
-    } else {
-      if (this.clientExpireTimer) {
-        clearTimeout(this.clientExpireTimer);
-        this.clientExpireTimer = null;
-      }
-      this.clientExpireAt = null;
-    }
-  }
-
-  resumeClientInvite() {
-    const role = this.getRole();
-    if (role !== 'CLIENT') return;
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    try {
-      const payload: any = jwtDecode(token);
-      const exp = payload.exp ? Number(payload.exp) : null;
-      if (exp) {
-        this.scheduleClientExpiration(exp);
-      }
-    } catch {}
   }
 
   isAuthenticated(): boolean {
@@ -82,11 +51,6 @@ export class AuthService {
       this.eventSource.close();
       this.eventSource = null;
     }
-    if (this.clientExpireTimer) {
-      clearTimeout(this.clientExpireTimer);
-      this.clientExpireTimer = null;
-    }
-    this.clientExpireAt = null;
     if (blocked) {
       localStorage.setItem('blocked', 'true');
     } else {
@@ -104,14 +68,15 @@ export class AuthService {
     try {
       const payload: any = jwtDecode(token);
       const role = payload.role;
-      if (role === 'ADMIN' || role === 'WAGESLAVE') {
-        return true;
+      if (payload.invite) {
+        const exp = localStorage.getItem('invite_expires');
+        if (exp && Date.parse(exp) > Date.now()) {
+          return true;
+        }
+        localStorage.removeItem('invite_expires');
+        return false;
       }
-      if (role === 'CLIENT') {
-        const exp = payload.exp ? Number(payload.exp) : null;
-        return !!exp && Date.now() / 1000 < exp;
-      }
-      return false;
+      return role === 'ADMIN' || role === 'WAGESLAVE';
     } catch {
       return false;
     }
@@ -120,14 +85,14 @@ export class AuthService {
   acceptInvite(invite: string) {
     const token = localStorage.getItem('token');
     if (!token) return null;
-    return this.http.post<{ token: string; role: string }>(
+    return this.http.post<{ token: string; role: string; expiresAt: string }>(
       `${this.api}/invite/accept?token=${invite}`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
   }
 
-    createInvite()  {
+  createInvite()  {
     const token = localStorage.getItem('token');
     if (!token) return null;
     return this.http.post(
@@ -138,12 +103,11 @@ export class AuthService {
   }
 
   refreshToken() {
-    const role = this.getRole();
-    if (role === 'CLIENT') {
-      return;
-    }
     const token = localStorage.getItem('token');
     if (!token) return;
+    try {
+      jwtDecode(token);
+    } catch {}
     this.http.post<{ token: string; role: string }>(`${this.api}/auth/refresh`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
@@ -162,11 +126,15 @@ export class AuthService {
     if (this.refreshTimerId) {
       clearInterval(this.refreshTimerId);
     }
-    const role = this.getRole();
-    if (role === 'CLIENT') {
-      this.refreshTimerId = null;
-      return;
-    }
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const payload: any = jwtDecode(token);
+      if (payload.invite) {
+        this.refreshTimerId = null;
+        return;
+      }
+    } catch {}
     this.refreshTimerId = setInterval(() => this.refreshToken(), 600000);
   }
 
@@ -200,26 +168,7 @@ export class AuthService {
     };
   }
 
-  private scheduleClientExpiration(exp: number) {
-    if (this.clientExpireTimer) {
-      clearTimeout(this.clientExpireTimer);
-    }
-    this.clientExpireAt = exp * 1000;
-    const delay = exp * 1000 - Date.now();
-    if (delay <= 0) {
-      this.logout();
-      this.router.navigate(['/']);
-      return;
-    }
-    this.clientExpireTimer = setTimeout(() => {
-      this.logout();
-      this.router.navigate(['/']);
-    }, delay);
-  }
-
-  getClientRemainingSeconds(): number | null {
-    if (!this.clientExpireAt) return null;
-    const remaining = Math.floor((this.clientExpireAt - Date.now()) / 1000);
-    return remaining > 0 ? remaining : null;
+  setInviteExpiration(dateStr: string) {
+    localStorage.setItem('invite_expires', dateStr);
   }
 }
