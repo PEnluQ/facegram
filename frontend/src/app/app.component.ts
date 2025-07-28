@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
     let start = this.tg.initDataUnsafe?.start_param as string | undefined;
     if (!start) {
       const params = new URLSearchParams(window.location.search);
-      start = params.get('tgWebAppStartParam') ?? undefined;
+      start = params.get('tgWebAppStartParam') ?? params.get('start') ?? undefined;
     }
     if (start && start.startsWith('chat_invite_')) {
       this.inviteStart = true;

@@ -69,12 +69,7 @@ export class AuthService {
       const payload: any = jwtDecode(token);
       const role = payload.role;
       if (payload.invite) {
-        const exp = localStorage.getItem('invite_expires');
-        if (exp && Date.parse(exp) > Date.now()) {
-          return true;
-        }
-        localStorage.removeItem('invite_expires');
-        return false;
+        return true;
       }
       return role === 'ADMIN' || role === 'WAGESLAVE';
     } catch {
@@ -85,14 +80,14 @@ export class AuthService {
   acceptInvite(invite: string) {
     const token = localStorage.getItem('token');
     if (!token) return null;
-    return this.http.post<{ token: string; role: string; expiresAt: string }>(
+    return this.http.post<{ token: string; role: string }>(
       `${this.api}/invite/accept?token=${invite}`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
   }
 
-  createInvite()  {
+  createInvite() {
     const token = localStorage.getItem('token');
     if (!token) return null;
     return this.http.post(
@@ -166,9 +161,5 @@ export class AuthService {
       }
       setTimeout(() => this.startNotificationListener(), 5000);
     };
-  }
-
-  setInviteExpiration(dateStr: string) {
-    localStorage.setItem('invite_expires', dateStr);
   }
 }

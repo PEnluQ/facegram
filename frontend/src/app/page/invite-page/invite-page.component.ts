@@ -27,7 +27,6 @@ export class InvitePageComponent implements OnInit {
       this.message = 'Invalid link';
       return;
     }
-
     if (this.auth.isChatAllowed()) {
       this.router.navigate(['/chat']);
       return;
@@ -53,14 +52,11 @@ export class InvitePageComponent implements OnInit {
     obs.subscribe({
       next: res => {
         this.auth.saveAuth(res.token, res.role);
-        if ((res as any).expiresAt) {
-          this.auth.setInviteExpiration((res as any).expiresAt);
-        }
         this.message = 'Invite accepted';
         this.router.navigate(['/chat']);
       },
-      error: err => {
-          this.message = err;
+      error: () => {
+        this.message = 'Invite invalid';
       }
     });
   }

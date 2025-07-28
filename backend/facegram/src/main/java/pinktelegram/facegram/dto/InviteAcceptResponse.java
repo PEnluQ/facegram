@@ -8,5 +8,4 @@ import lombok.Data;
 public class InviteAcceptResponse {
     private String token;
     private String role;
-    private String expiresAt;
 }

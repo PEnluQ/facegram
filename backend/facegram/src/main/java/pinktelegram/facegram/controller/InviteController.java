@@ -42,7 +42,7 @@ public class InviteController {
 
     @PostMapping("/accept")
     public ResponseEntity<InviteAcceptResponse> accept(@RequestParam("token") String inviteToken,
-                                               @RequestHeader("Authorization") String authHeader) {
+                                                       @RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -58,9 +58,8 @@ public class InviteController {
             if (referral == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
-            String newToken = jwtUtil.createToken(userId, Role.GUEST, 15 * 60, true);
-            java.time.LocalDateTime expires = referral.getExpiresAt();
-            return ResponseEntity.ok(new InviteAcceptResponse(newToken, Role.GUEST.name(), expires.toString()));
+            String newToken = jwtUtil.createToken(userId, Role.GUEST, 86400, true);
+            return ResponseEntity.ok(new InviteAcceptResponse(newToken, Role.GUEST.name()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }

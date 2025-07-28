@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://integral-lewis-pdas-tool.trycloudflare.com'
+  apiUrl: 'https://scene-swing-pressure-another.trycloudflare.com'
 }
