@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenubarModule } from 'primeng/menubar';
 import { CardModule }    from 'primeng/card';
@@ -37,12 +37,21 @@ import {AuthService} from '../../core/auth.service';
   `]
 })
 
-export class ChatComponent {
+export class ChatComponent implements OnInit {
 
   constructor(
     private router: Router,
     private auth: AuthService
   ) {}
+
+  ngOnInit() {
+    if (this.auth.getRole() === 'GUEST') {
+      const token = this.auth.getChatRoomToken();
+      if (token) {
+        this.router.navigate(['/chat', token]);
+      }
+    }
+  }
 
   get canInvite(): boolean {
     const role = this.auth.getRole();
