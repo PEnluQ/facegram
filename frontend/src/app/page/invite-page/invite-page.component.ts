@@ -28,7 +28,8 @@ export class InvitePageComponent implements OnInit {
       return;
     }
     if (this.auth.isChatAllowed()) {
-      this.router.navigate(['/chat']);
+      this.auth.setChatRoomToken(token);
+      this.router.navigate(['/chat', token]);
       return;
     }
     this.tryAccept(token);
@@ -52,8 +53,9 @@ export class InvitePageComponent implements OnInit {
     obs.subscribe({
       next: res => {
         this.auth.saveAuth(res.token, res.role);
+        this.auth.setChatRoomToken(invite);
         this.message = 'Invite accepted';
-        this.router.navigate(['/chat']);
+        this.router.navigate(['/chat', invite]);
       },
       error: () => {
         this.message = 'Invite invalid';

@@ -8,6 +8,7 @@ import Aura from '@primeng/themes/aura';
 import 'primeicons/primeicons.css';
 import {SettingsComponent} from './app/features/settings/settings.component';
 import {ChatComponent} from './app/page/chat/chat.component';
+import {ChatRoomComponent} from './app/page/chat/chat-room.component';
 import {HomePageComponent} from './app/page/home-page/home-page.component';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {AuthInterceptor} from './app/core/api.interceptor';
@@ -24,7 +25,7 @@ const routes: Routes = [
       {path: '', component: HomePageComponent},
       {path: 'settings', component: SettingsComponent},
       { path: 'chat', component: ChatComponent, canActivate: [ChatGuard] },
-      { path: 'chat/:id', component: ChatComponent, canActivate: [ChatGuard] },
+      { path: 'chat/:id', component: ChatRoomComponent, canActivate: [ChatGuard] },
       { path: 'admin', component: AdminPageComponent, canActivate: [AdminGuard] },
       { path: 'admin/user/:id', component: AdminUserComponent, canActivate: [AdminGuard] },
       { path: 'blocked', component: BlockedPageComponent },

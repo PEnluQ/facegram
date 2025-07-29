@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pinktelegram.facegram.dto.InviteAcceptResponse;
+import pinktelegram.facegram.dto.InviteInfoResponse;
 import pinktelegram.facegram.entity.Role;
 import pinktelegram.facegram.security.JwtUtil;
 import pinktelegram.facegram.service.InvitationService;
@@ -60,6 +61,25 @@ public class InviteController {
             }
             String newToken = jwtUtil.createToken(userId, Role.GUEST, 86400, true);
             return ResponseEntity.ok(new InviteAcceptResponse(newToken, Role.GUEST.name()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @GetMapping("/info/{token}")
+    public ResponseEntity<?> info(@PathVariable("token") String inviteToken,
+                                  @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.parseToken(token);
+            InviteInfoResponse info = invitationService.getInviteInfo(inviteToken);
+            if (info == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            return ResponseEntity.ok(info);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
