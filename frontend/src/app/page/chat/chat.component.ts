@@ -22,8 +22,8 @@ import {AuthService} from '../../core/auth.service';
   template: `
     <div class="content-wrapper"></div>
 
-    <div *ngIf="canInvite" class="mt-3">
-      <button pButton label="Создать чат" class="ml-2" (click)="createChat()"></button>
+    <div class="mt-3">
+      <button pButton label="Создать чат" class="ml-2" (click)="createChat()" [disabled]="!canInvite"></button>
     </div>
   `,
   styles: [`
@@ -59,6 +59,7 @@ export class ChatComponent implements OnInit {
   }
 
   createChat() {
+    if (!this.canInvite) return;
     const obs = this.auth.createInvite();
     if (!obs) { return; }
     obs.subscribe({

@@ -16,9 +16,5 @@ export const ChatGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  if (!auth.isChatAllowed()) {
-    router.navigate(['/']);
-    return false;
-  }
   return true;
 };
