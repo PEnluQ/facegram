@@ -9,6 +9,7 @@ export class AuthService {
   private readonly api = environment.apiUrl;
   private refreshTimerId: any = null;
   private eventSource: EventSource | null = null;
+  private chatTokenKey = 'chat_room_token';
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -47,6 +48,7 @@ export class AuthService {
   logout(blocked = false) {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    localStorage.removeItem(this.chatTokenKey);
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
@@ -94,6 +96,23 @@ export class AuthService {
       `${this.api}/invite/create`,
       {},
       { responseType: 'text', headers: { Authorization: `Bearer ${token}` } }
+    );
+  }
+
+  setChatRoomToken(token: string) {
+    localStorage.setItem(this.chatTokenKey, token);
+  }
+
+  getChatRoomToken(): string | null {
+    return localStorage.getItem(this.chatTokenKey);
+  }
+
+  getInviteInfo(token: string) {
+    const auth = localStorage.getItem('token');
+    if (!auth) return null;
+    return this.http.get<{ author: string; guest: string }>(
+      `${this.api}/invite/info/${token}`,
+      { headers: { Authorization: `Bearer ${auth}` } }
     );
   }
 

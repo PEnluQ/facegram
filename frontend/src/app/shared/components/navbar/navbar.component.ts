@@ -115,8 +115,15 @@ export class NavbarComponent {
   }
 
   goTo(path: string) {
-    if (this.url !== path) {
-      this.router.navigate([path]);
+    let target = path;
+    if (path === '/chat' && this.auth.getRole() === 'GUEST') {
+      const token = this.auth.getChatRoomToken();
+      if (token) {
+        target = `/chat/${token}`;
+      }
+    }
+    if (this.url !== target) {
+      this.router.navigate([target]);
     }
   }
 }

@@ -1,10 +1,10 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenubarModule } from 'primeng/menubar';
 import { CardModule }    from 'primeng/card';
 import { ButtonModule }  from 'primeng/button';
 import { ToolbarModule } from 'primeng/toolbar';
-import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {AuthService} from '../../core/auth.service';
 
 
@@ -20,13 +20,10 @@ import {AuthService} from '../../core/auth.service';
     ToolbarModule,
   ],
   template: `
-    <div class="content-wrapper">
-        <button pButton severity="danger" label="Подробнее" icon="pi pi-info-circle"></button>
-    </div>
+    <div class="content-wrapper"></div>
 
     <div *ngIf="canInvite" class="mt-3">
-      <button pButton label="Create Invite" class="ml-2" (click)="createInvite()"></button>
-      <p *ngIf="inviteLink" class="mt-2">Invite: <a [href]="inviteLink">{{ inviteLink }}</a></p>
+      <button pButton label="Создать чат" class="ml-2" (click)="createChat()"></button>
     </div>
   `,
   styles: [`
@@ -41,27 +38,27 @@ import {AuthService} from '../../core/auth.service';
 })
 
 export class ChatComponent {
-  roomId: string | null = null;
-  inviteLink: string | null = null;
 
   constructor(
-    private route: ActivatedRoute,
+    private router: Router,
     private auth: AuthService
-  ) {
-    this.roomId = this.route.snapshot.paramMap.get('id');
-  }
+  ) {}
 
   get canInvite(): boolean {
     const role = this.auth.getRole();
     return role === 'WAGESLAVE' || role === 'ADMIN';
   }
 
-  createInvite() {
+  createChat() {
     const obs = this.auth.createInvite();
-    if (!obs) { this.inviteLink = 'Not authenticated'; return; }
+    if (!obs) { return; }
     obs.subscribe({
-      next: link => this.inviteLink = link,
-      error: () => this.inviteLink = 'Failed'
+      next: link => {
+        const tokenIndex = link.lastIndexOf('_');
+        const token = tokenIndex >= 0 ? link.substring(tokenIndex + 1) : link;
+        this.auth.setChatRoomToken(token);
+        this.router.navigate(['/chat', token]);
+      }
     });
   }
 

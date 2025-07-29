@@ -6,6 +6,7 @@ import pinktelegram.facegram.entity.Referral;
 import pinktelegram.facegram.entity.User;
 import pinktelegram.facegram.repository.ReferralRepository;
 import pinktelegram.facegram.repository.UserRepository;
+import pinktelegram.facegram.dto.InviteInfoResponse;
 
 import java.util.UUID;
 
@@ -44,5 +45,15 @@ public class InvitationService {
         referralRepository.save(ref);
 
         return ref;
+    }
+
+    @Transactional(readOnly = true)
+    public InviteInfoResponse getInviteInfo(String token) {
+        var optional = referralRepository.findByToken(token);
+        if (optional.isEmpty()) return null;
+        Referral ref = optional.get();
+        String author = ref.getAuthor() != null ? ref.getAuthor().getUsername() : null;
+        String guest = ref.getGuest() != null ? ref.getGuest().getUsername() : null;
+        return new InviteInfoResponse(author, guest);
     }
 }
