@@ -1,20 +1,17 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
 
 @Component({
   selector: 'home-page-component',
   imports: [
-    ButtonDirective,
     Card,
   ],
   template: `
     <ng-container>
       <p-card header="Добро пожаловать!">
         <p>Здесь ваш основной контент на домашней странице.</p>
-        <button pButton label="Подробнее" icon="pi pi-info-circle"></button>
       </p-card>
     </ng-container>
   `
