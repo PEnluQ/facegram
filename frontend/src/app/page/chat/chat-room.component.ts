@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MenubarModule} from 'primeng/menubar';
 import {CardModule} from 'primeng/card';
@@ -31,23 +31,24 @@ import {AuthService} from '../../core/auth.service';
     }
   `]
 })
-export class ChatRoomComponent {
+export class ChatRoomComponent implements OnInit {
   inviteLink: string | null = null;
   author: string | null = null;
   guest: string | null = null;
 
-  constructor(private route: ActivatedRoute, private auth: AuthService) {
+  constructor(private route: ActivatedRoute, private auth: AuthService) {}
+
+  ngOnInit() {
     const token = this.route.snapshot.paramMap.get('id');
-    if (token) {
-      this.auth.setChatRoomToken(token);
-      this.inviteLink = `https://t.me/FaceGrammBot/faces?startapp=chat_invite_${token}`;
-      const obs = this.auth.getInviteInfo(token);
-      obs?.subscribe({
-        next: info => {
-          this.author = info.author;
-          this.guest = info.guest;
-        }
-      });
-    }
+    if (!token) return;
+    this.auth.setChatRoomToken(token);
+    this.inviteLink = `https://t.me/FaceGrammBot/faces?startapp=chat_invite_${token}`;
+    const obs = this.auth.getInviteInfo(token);
+    obs?.subscribe({
+      next: info => {
+        this.author = info.author;
+        this.guest = info.guest;
+      }
+    });
   }
 }

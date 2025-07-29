@@ -123,7 +123,7 @@ export class NavbarComponent {
       }
     }
     if (this.url !== target) {
-      this.router.navigate([target]);
+      this.router.navigateByUrl(target);
     }
   }
 }
