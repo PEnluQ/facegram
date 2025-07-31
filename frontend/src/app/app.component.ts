@@ -42,7 +42,7 @@ export class AppComponent implements OnInit {
       this.inviteStart = true;
       const token = start.substring('chat_invite_'.length);
       if (this.auth.isChatAllowed()) {
-        this.router.navigate(['/chat']);
+        this.router.navigate(['/chat', token]);
       } else {
         this.router.navigate(['/invite', token]);
       }

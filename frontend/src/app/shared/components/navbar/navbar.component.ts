@@ -29,7 +29,7 @@ import {AuthService} from '../../../core/auth.service';
         </svg>
       </button>
 
-      <button class="p-button-text" [class.active]="url === '/chat'" (click)="goTo('/chat')">
+      <button class="p-button-text" [class.active]="url.startsWith('/chat')" (click)="goTo('/chat')">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
           <path d="M6 21V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-3 3z" stroke="#229ED9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </svg>
@@ -115,8 +115,15 @@ export class NavbarComponent {
   }
 
   goTo(path: string) {
-    if (this.url !== path) {
-      this.router.navigate([path]);
+    let target = path;
+    if (path === '/chat' && this.auth.getRole() === 'GUEST') {
+      const token = this.auth.getChatRoomToken();
+      if (token) {
+        target = `/chat/${token}`;
+      }
+    }
+    if (this.url !== target) {
+      this.router.navigate([target]);
     }
   }
 }

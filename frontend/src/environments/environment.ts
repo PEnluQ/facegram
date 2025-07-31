@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://scene-swing-pressure-another.trycloudflare.com'
+  apiUrl: 'https://robbie-respectively-ppc-ext.trycloudflare.com'
 }

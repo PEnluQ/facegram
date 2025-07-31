@@ -17,6 +17,7 @@ import {AdminPageComponent} from './app/page/admin-page/admin-page.component';
 import {AdminUserComponent} from './app/page/admin-user/admin-user.component';
 import {BlockedPageComponent} from './app/page/blocked-page/blocked-page.component';
 import {InvitePageComponent} from './app/page/invite-page/invite-page.component';
+import {ChatRoomComponent} from './app/page/chat/chat-room.component';
 
 const routes: Routes = [
   {
@@ -24,7 +25,7 @@ const routes: Routes = [
       {path: '', component: HomePageComponent},
       {path: 'settings', component: SettingsComponent},
       { path: 'chat', component: ChatComponent, canActivate: [ChatGuard] },
-      { path: 'chat/:id', component: ChatComponent, canActivate: [ChatGuard] },
+      { path: 'chat/:id', component: ChatRoomComponent, canActivate: [ChatGuard] },
       { path: 'admin', component: AdminPageComponent, canActivate: [AdminGuard] },
       { path: 'admin/user/:id', component: AdminUserComponent, canActivate: [AdminGuard] },
       { path: 'blocked', component: BlockedPageComponent },

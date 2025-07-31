@@ -16,8 +16,9 @@ import { AuthService } from '../../core/auth.service';
     .content-wrapper { padding: 1rem; text-align: center; }
   `]
 })
+
 export class InvitePageComponent implements OnInit {
-  message = 'Processing...';
+  message = 'Идет соединение...';
 
   constructor(private route: ActivatedRoute, private auth: AuthService, private router: Router) {}
 
@@ -25,10 +26,12 @@ export class InvitePageComponent implements OnInit {
     const token = this.route.snapshot.paramMap.get('token');
     if (!token) {
       this.message = 'Invalid link';
+      this.auth.clearChatRoomToken();
       return;
     }
     if (this.auth.isChatAllowed()) {
-      this.router.navigate(['/chat']);
+      this.auth.setChatRoomToken(token);
+      this.router.navigate(['/chat', token]);
       return;
     }
     this.tryAccept(token);
@@ -52,11 +55,13 @@ export class InvitePageComponent implements OnInit {
     obs.subscribe({
       next: res => {
         this.auth.saveAuth(res.token, res.role);
+        this.auth.setChatRoomToken(invite);
         this.message = 'Invite accepted';
-        this.router.navigate(['/chat']);
+        this.router.navigate(['/chat', invite]);
       },
       error: () => {
         this.message = 'Invite invalid';
+        this.auth.clearChatRoomToken();
       }
     });
   }
