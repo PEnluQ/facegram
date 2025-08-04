@@ -85,7 +85,7 @@ import {AuthService} from '../../../core/auth.service';
 
     .p-button-text.active {
       background: #ddf8;
-      border-radius: 8px    ;
+      border-radius: 8px;
     }
     .p-button-text svg {
       display: block;
@@ -115,15 +115,18 @@ export class NavbarComponent {
   }
 
   goTo(path: string) {
-    let target = path;
-    if (path === '/chat' && this.auth.getRole() === 'GUEST') {
+    if (path === '/chat') {
       const token = this.auth.getChatRoomToken();
       if (token) {
-        target = `/chat/${token}`;
+        const target = `/chat/${token}`;
+        if (this.url !== target) {
+          this.router.navigate(['/chat', token]);
+        }
+        return;
       }
     }
-    if (this.url !== target) {
-      this.router.navigate([target]);
+    if (this.url !== path) {
+      this.router.navigate([path]);
     }
   }
 }

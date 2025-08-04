@@ -124,7 +124,10 @@ export class AuthService {
     const token = localStorage.getItem('token');
     if (!token) return;
     try {
-      jwtDecode(token);
+      const payload: any = jwtDecode(token);
+      if (payload.invite || payload.role === 'GUEST') {
+        return;
+      }
     } catch {}
     this.http.post<{ token: string; role: string }>(`${this.api}/auth/refresh`, {}, {
       headers: { Authorization: `Bearer ${token}` }

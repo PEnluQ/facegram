@@ -38,6 +38,12 @@ export class ChatComponent {
     private auth: AuthService
   ) {
     this.roomId = this.route.snapshot.paramMap.get('id');
+    if (!this.roomId) {
+      const token = this.auth.getChatRoomToken();
+      if (token) {
+        this.router.navigate(['/chat', token]);
+      }
+    }
   }
 
   get canInvite(): boolean {
