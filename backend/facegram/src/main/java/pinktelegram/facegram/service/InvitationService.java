@@ -5,9 +5,11 @@ import org.springframework.stereotype.Service;
 import pinktelegram.facegram.dto.InviteInfoResponse;
 import pinktelegram.facegram.entity.Referral;
 import pinktelegram.facegram.entity.User;
+import pinktelegram.facegram.notification.NotificationService;
 import pinktelegram.facegram.repository.ReferralRepository;
 import pinktelegram.facegram.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InvitationService {
     private final ReferralRepository referralRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public String createInvite(Long authorId) {
@@ -26,6 +29,7 @@ public class InvitationService {
                 .token(token)
                 .author(author)
                 .activated(false)
+                .usedAt(LocalDateTime.now())
                 .build();
         referralRepository.save(referral);
         return token;
@@ -45,6 +49,17 @@ public class InvitationService {
         referralRepository.save(ref);
 
         return ref;
+    }
+
+    @Transactional
+    public void closeInvite(String token) {
+        var optional = referralRepository.findByToken(token);
+        if (optional.isEmpty()) return;
+        Referral ref = optional.get();
+        var now = LocalDateTime.now();
+        ref.setExpiresAt(now);
+        ref.setActivated(true);
+        referralRepository.save(ref);
     }
 
     @Transactional(readOnly = true)

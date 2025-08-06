@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MenubarModule} from 'primeng/menubar';
 import {CardModule} from 'primeng/card';
@@ -6,6 +6,7 @@ import {ButtonModule} from 'primeng/button';
 import {ToolbarModule} from 'primeng/toolbar';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {AuthService} from '../../core/auth.service';
+import {finalize} from 'rxjs';
 
 @Component({
   selector: 'chat-room',
@@ -33,15 +34,17 @@ import {AuthService} from '../../core/auth.service';
   `]
 })
 
-export class ChatRoomComponent implements OnDestroy {
+export class ChatRoomComponent  {
   inviteLink: string | null = null;
   author: string | null = null;
   guest: string | null = null;
   canExit = false;
+  token: string | null = null;
 
   constructor(private route: ActivatedRoute, private router: Router, private auth: AuthService) {
     const token = this.route.snapshot.paramMap.get('id');
     if (token) {
+      this.token = token;
       this.auth.setChatRoomToken(token);
       this.inviteLink = `https://t.me/FaceGrammBot/faces?startapp=chat_invite_${token}`;
       const obs = this.auth.getInviteInfo(token);
@@ -51,20 +54,30 @@ export class ChatRoomComponent implements OnDestroy {
           this.guest = info.guest;
         }
       });
+    } else {
+      this.token = this.auth.getChatRoomToken();
     }
     const role = this.auth.getRole();
     this.canExit = role === 'WAGESLAVE' || role === 'ADMIN';
   }
 
   exit() {
-    this.auth.clearChatRoomToken();
-    this.router.navigate(['/chat']);
-  }
-
-  ngOnDestroy() {
-    if (this.auth.getRole() === 'GUEST') {
+    if (!this.token) {
       this.auth.clearChatRoomToken();
       this.router.navigate(['/chat']);
+      return;
     }
+    const obs = this.auth.closeChat(this.token);
+    if (!obs) {
+      this.auth.clearChatRoomToken();
+      this.router.navigate(['/chat']);
+      return;
+    }
+    obs.pipe(
+      finalize(() => {
+        this.auth.clearChatRoomToken();
+        this.router.navigate(['/chat']);
+      })
+    ).subscribe();
   }
 }

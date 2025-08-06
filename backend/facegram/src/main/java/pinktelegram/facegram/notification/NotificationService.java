@@ -46,6 +46,17 @@ public class NotificationService {
         }
     }
 
+    public void sendChatClosed(Long userId) {
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().name("chat_closed").data("true"));
+            } catch (IOException e) {
+                emitters.remove(userId);
+            }
+        }
+    }
+
     @Scheduled(fixedRate = 15000)
     public void sendPings() {
         emitters.forEach((id, emitter) -> {

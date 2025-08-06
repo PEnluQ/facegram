@@ -84,4 +84,24 @@ public class InviteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
+    @PostMapping("/close/{token}")
+    public ResponseEntity<Void> close(@PathVariable("token") String inviteToken,
+                                      @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = authHeader.substring(7);
+        try {
+            Jws<Claims> claims = jwtUtil.parseToken(token);
+            String role = claims.getPayload().get("role", String.class);
+            if (!"WAGESLAVE".equals(role) && !"ADMIN".equals(role)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            invitationService.closeInvite(inviteToken);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
 }

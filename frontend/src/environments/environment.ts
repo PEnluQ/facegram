@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://bar-generator-picks-fg.trycloudflare.com'
+  apiUrl: 'https://tale-ringtones-mills-rg.trycloudflare.com'
 }

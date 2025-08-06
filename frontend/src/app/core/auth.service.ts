@@ -99,6 +99,16 @@ export class AuthService {
     );
   }
 
+  closeChat(token: string) {
+    const auth = localStorage.getItem('token');
+    if (!auth) return null;
+    return this.http.post<void>(
+      `${this.api}/invite/close/${token}`,
+      {},
+      { headers: { Authorization: `Bearer ${auth}` } }
+    );
+  }
+
   setChatRoomToken(token: string) {
     localStorage.setItem(this.chatTokenKey, token);
   }
@@ -124,10 +134,7 @@ export class AuthService {
     const token = localStorage.getItem('token');
     if (!token) return;
     try {
-      const payload: any = jwtDecode(token);
-      if (payload.invite || payload.role === 'GUEST') {
-        return;
-      }
+      jwtDecode(token);
     } catch {}
     this.http.post<{ token: string; role: string }>(`${this.api}/auth/refresh`, {}, {
       headers: { Authorization: `Bearer ${token}` }
@@ -179,6 +186,10 @@ export class AuthService {
       if (role === 'GUEST') {
         this.router.navigate(['/']);
       }
+    });
+    this.eventSource.addEventListener('chat_closed', () => {
+      this.clearChatRoomToken();
+      this.router.navigate(['/chat']);
     });
     this.eventSource.onerror = () => {
       if (this.eventSource) {

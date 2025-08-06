@@ -29,7 +29,8 @@ export class InvitePageComponent implements OnInit {
       this.auth.clearChatRoomToken();
       return;
     }
-    if (this.auth.isChatAllowed()) {
+    const role = this.auth.getRole();
+    if (role === 'ADMIN' || role === 'WAGESLAVE') {
       this.auth.setChatRoomToken(token);
       this.router.navigate(['/chat', token]);
       return;

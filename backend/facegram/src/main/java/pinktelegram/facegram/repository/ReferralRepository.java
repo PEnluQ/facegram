@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ReferralRepository extends JpaRepository<Referral, Long> {
     Optional<Referral> findByToken(String token);
+
 }
