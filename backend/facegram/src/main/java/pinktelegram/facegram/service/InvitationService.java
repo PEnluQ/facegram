@@ -2,6 +2,7 @@ package pinktelegram.facegram.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 import pinktelegram.facegram.dto.InviteInfoResponse;
 import pinktelegram.facegram.entity.Referral;
 import pinktelegram.facegram.entity.User;
@@ -51,7 +52,7 @@ public class InvitationService {
         return ref;
     }
 
-    @Transactional
+    @TransactionalEventListener
     public void closeInvite(String token) {
         var optional = referralRepository.findByToken(token);
         if (optional.isEmpty()) return;
@@ -60,6 +61,14 @@ public class InvitationService {
         ref.setExpiresAt(now);
         ref.setActivated(true);
         referralRepository.save(ref);
+        User author = ref.getAuthor();
+        if (author != null) {
+            notificationService.sendChatClosed(author.getTelegramId());
+        }
+        User guest = ref.getGuest();
+        if (guest != null) {
+            notificationService.sendChatClosed(guest.getTelegramId());
+        }
     }
 
     @Transactional(readOnly = true)

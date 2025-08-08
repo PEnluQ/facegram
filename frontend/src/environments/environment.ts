@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://tale-ringtones-mills-rg.trycloudflare.com'
+  apiUrl: 'https://soap-nails-merger-altered.trycloudflare.com'
 }

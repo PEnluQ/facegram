@@ -39,6 +39,10 @@ export class AppComponent implements OnInit {
       start = params.get('tgWebAppStartParam') ?? params.get('start') ?? undefined;
     }
     if (start && start.startsWith('chat_invite_')) {
+      if (this.auth.isBlocked()) {
+        this.router.navigate(['/blocked']);
+        return;
+      }
       this.inviteStart = true;
       const token = start.substring('chat_invite_'.length);
       if (this.auth.isChatAllowed()) {

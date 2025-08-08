@@ -48,6 +48,7 @@ public class NotificationService {
 
     public void sendChatClosed(Long userId) {
         SseEmitter emitter = emitters.get(userId);
+        System.out.println("[SSE] sendChatClosed called for userId=" + userId + " emitter=" + (emitter != null));
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().name("chat_closed").data("true"));

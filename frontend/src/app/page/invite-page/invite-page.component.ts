@@ -23,6 +23,10 @@ export class InvitePageComponent implements OnInit {
   constructor(private route: ActivatedRoute, private auth: AuthService, private router: Router) {}
 
   ngOnInit() {
+    if (this.auth.isBlocked()) {
+      this.router.navigate(['/blocked']);
+      return;
+    }
     const token = this.route.snapshot.paramMap.get('token');
     if (!token) {
       this.message = 'Invalid link';

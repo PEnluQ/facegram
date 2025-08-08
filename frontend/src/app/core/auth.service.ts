@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
@@ -11,7 +11,12 @@ export class AuthService {
   private eventSource: EventSource | null = null;
   private chatTokenKey = 'chat_room_token';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private zone: NgZone ) {
+    if (this.isAuthenticated()) {
+      this.startAutoRefresh();
+      this.startNotificationListener();
+    }
+  }
 
   loginViaTelegram(initData: string) {
     console.log('Angular отправляет запрос на:', `${this.api}/auth/telegram`, { initData });
@@ -169,34 +174,97 @@ export class AuthService {
   private startNotificationListener() {
     if (this.eventSource) {
       this.eventSource.close();
+      this.eventSource = null;
+      console.log("was exist");
     }
     const token = localStorage.getItem('token');
+
     if (!token) return;
-    this.eventSource = new EventSource(`${this.api}/notifications/subscribe?token=${token}`);
-    this.eventSource.addEventListener('blocked', (e: MessageEvent) => {
-      const blocked = e.data === 'true';
-      if (blocked) {
-        this.logout(true);
-        this.router.navigate(['/blocked']);
-      }
-    });
-    this.eventSource.addEventListener('role', () => {
-      this.refreshToken();
-      const role = this.getRole();
-      if (role === 'GUEST') {
-        this.router.navigate(['/']);
-      }
-    });
-    this.eventSource.addEventListener('chat_closed', () => {
-      this.clearChatRoomToken();
-      this.router.navigate(['/chat']);
-    });
+    console.log("has token");
+
+    this.eventSource = new EventSource(
+      `${this.api}/notifications/subscribe?token=${encodeURIComponent(token)}`
+    );
+
+    console.log("Начал слушать");
+
+    this.eventSource.addEventListener('blocked', (e: MessageEvent) =>
+      this.zone.run(() => {
+        console.log(123)
+        if (e.data === 'true') {
+          this.logout(true);
+          this.router.navigate(['/blocked']);
+        }
+      })
+    );
+
+    this.eventSource.addEventListener('chat_closed', () =>
+      this.zone.run(() => {
+        this.clearChatRoomToken();
+        this.router.navigate(['/chat']);
+      })
+    );
+
+    this.eventSource.addEventListener('role', () =>
+      this.zone.run(() => {
+        this.refreshToken();
+        if (this.getRole() === 'GUEST') this.router.navigate(['/']);
+      })
+    );
+
     this.eventSource.onerror = () => {
       if (this.eventSource) {
         this.eventSource.close();
         this.eventSource = null;
       }
+      console.log("Переподключение будет");
       setTimeout(() => this.startNotificationListener(), 5000);
     };
   }
+
+  // private startNotificationListener() {
+  //   console.log("Начинается слушанье");
+  //   if (this.eventSource) {
+  //     this.eventSource.close();
+  //   }
+  //   const token = localStorage.getItem('token');
+  //   if (!token) return;
+  //
+  //   this.eventSource = new EventSource(`${this.api}/notifications/subscribe?token=${token}`);
+  //
+  //   const handleBlocked = (e: MessageEvent) => {
+  //     const blocked = e.data === 'true';
+  //     if (blocked) {
+  //       console.log("Блокировка");
+  //       this.logout(true);
+  //       this.router.navigate(['/blocked']);
+  //     }
+  //   };
+  //
+  //   this.eventSource.addEventListener('blocked', handleBlocked);
+  //
+  //   this.eventSource.addEventListener('role', () => {
+  //     this.refreshToken();
+  //     const role = this.getRole();
+  //     if (role === 'GUEST') {
+  //       this.router.navigate(['/']);
+  //     }
+  //   });
+  //
+  //   const handleChatClosed = () => {
+  //       this.clearChatRoomToken();
+  //       console.log("Чат закрыт");
+  //       this.router.navigate(['/chat']);
+  //   };
+  //
+  //   this.eventSource.addEventListener('chat_closed', handleChatClosed);
+  //
+  //   this.eventSource.onerror = () => {
+  //     if (this.eventSource) {
+  //       this.eventSource.close();
+  //       this.eventSource = null;
+  //     }
+  //     setTimeout(() => this.startNotificationListener(), 5000);
+  //   };
+  // }
 }
